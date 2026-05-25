@@ -101,7 +101,6 @@ export default function Page1() {
       if (dup === 'phone') { setErrors(e=>({...e,phone:t.err_dup_phone})); setSaving(false); return }
       if (dup === 'whatsapp') { setErrors(e=>({...e,wp:t.err_dup_wp})); setSaving(false); return }
 
-      // Save everything including status in one single call
       const res = await fetch('/api/apply/save', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -122,20 +121,23 @@ export default function Page1() {
           page1_complete: true
         })
       })
-      const data = await res.json()
-      console.log('SAVE RESULT:', data)
-      if (data.application) {
-        window.location.href = '/apply/payment'
+
+      if (res.ok) {
+        console.log('Save successful, moving to payment routing.');
+        router.push('/apply/payment');
       } else {
-        alert('Save failed: ' + JSON.stringify(data))
+        const errorPayload = await res.json().catch(() => ({}));
+        alert('Failed to proceed. Server responded with an error status.');
+        console.error('API Error details:', errorPayload);
       }
     } catch(err) {
-      console.error('NEXT ERROR:', err)
+      console.error('NEXT FUNCTION EXCEPTION:', err)
       alert('An error occurred: ' + err.message)
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
-  
+
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cream)'}}><p style={{color:'var(--gray-400)'}}>Chargement…</p></div>
 
   return (
