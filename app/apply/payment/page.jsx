@@ -51,7 +51,10 @@ function PaymentInner() {
 
   const handleSend = async () => {
     const res = await fetch('/api/apply/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_token:token }) })
-    if ((await res.json()).application) router.push('/apply/success')
+    if ((await res.json()).application) {
+      localStorage.removeItem('iun_form_draft')
+      router.push('/apply/success')
+    }
     setShowModal(false)
   }
 

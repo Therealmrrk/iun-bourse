@@ -40,7 +40,17 @@ export default function Page1() {
           if (a.status === 'payment_rejected') { router.replace('/apply/payment?resubmit=true'); return }
           if (a.status === 'draft_p2') { router.replace('/apply/payment'); return }
           setAppId(a.id)
-          setForm({ full_name:a.full_name||'', email:a.email||'', nationality:a.nationality||'', phone_code:a.phone_code||'+228', phone_number:a.phone_number||'', wp_code:a.wp_code||'+228', wp_number:a.wp_number||'', in_togo:a.in_togo, photo_url:a.photo_url||'', photo_name:'', cert_url:a.cert_url||'', cert_name:'', birth_cert_url:a.birth_cert_url||'', birth_cert_name:'' })
+          
+          const localDraft = localStorage.getItem('iun_form_draft')
+          if (localDraft) {
+            try {
+              setForm(JSON.parse(localDraft))
+            } catch (e) {
+              setForm({ full_name:a.full_name||'', email:a.email||'', nationality:a.nationality||'', phone_code:a.phone_code||'+228', phone_number:a.phone_number||'', wp_code:a.wp_code||'+228', wp_number:a.wp_number||'', in_togo:a.in_togo, photo_url:a.photo_url||'', photo_name:'', cert_url:a.cert_url||'', cert_name:'', birth_cert_url:a.birth_cert_url||'', birth_cert_name:'' })
+            }
+          } else {
+            setForm({ full_name:a.full_name||'', email:a.email||'', nationality:a.nationality||'', phone_code:a.phone_code||'+228', phone_number:a.phone_number||'', wp_code:a.wp_code||'+228', wp_number:a.wp_number||'', in_togo:a.in_togo, photo_url:a.photo_url||'', photo_name:'', cert_url:a.cert_url||'', cert_name:'', birth_cert_url:a.birth_cert_url||'', birth_cert_name:'' })
+          }
           setLoading(false)
         })
     } else {
@@ -50,6 +60,13 @@ export default function Page1() {
       setLoading(false)
     }
   }, [])
+
+  // Save form draft to localStorage as user types
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('iun_form_draft', JSON.stringify(form))
+    }
+  }, [form, token])
 
   const checkDuplicates = async () => {
     const res = await fetch('/api/apply/check', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email:form.email, phone_code:form.phone_code, phone_number:form.phone_number, wp_code:form.wp_code, wp_number:form.wp_number, exclude_id:appId }) })
@@ -176,7 +193,7 @@ export default function Page1() {
             {/* WhatsApp */}
             <PhoneInput label={t.whatsapp} codeValue={form.wp_code} numberValue={form.wp_number} onCodeChange={v=>up('wp_code',v)} onNumberChange={v=>up('wp_number',v)} error={typeof errors.wp==='string'?errors.wp:null} t={t} />
             {/* Photo */}
-            <FileUpload label={t.photo_label} hint={t.photo_hint} accept=".jpg,.jpeg,.png" maxMB={1} folder="photos" value={form.photo_url} filename={form.photo_name} onUpload={(url,name)=>{up('photo_url',url);up('photo_name',name)}} onRemove={()=>{up('photo_url','');up('photo_name','')}} error={errors.photo?t.err_required:null} t={t} useCamera={true} />
+            <FileUpload label={t.photo_label} hint={t.photo_hint} accept=".jpg,.jpeg,.png" maxMB={3} folder="photos" value={form.photo_url} filename={form.photo_name} onUpload={(url,name)=>{up('photo_url',url);up('photo_name',name)}} onRemove={()=>{up('photo_url','');up('photo_name','')}} error={errors.photo?t.err_required:null} t={t} useCamera={true} />
             {/* Cert */}
             <FileUpload label={t.cert_label} hint={t.cert_hint} accept=".pdf,.jpg,.jpeg,.png" maxMB={3} folder="certs" value={form.cert_url} filename={form.cert_name} onUpload={(url,name)=>{up('cert_url',url);up('cert_name',name)}} onRemove={()=>{up('cert_url','');up('cert_name','')}} error={errors.cert?t.err_required:null} t={t} />
             {/* Birth cert */}

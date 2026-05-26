@@ -29,7 +29,7 @@ export default function Landing() {
         <div className="text-center py-3 px-4" style={{ background: 'var(--gold-pale)', borderBottom: '1px solid var(--gold)' }}>
           <span className="text-sm font-semibold mr-3" style={{ color: 'var(--navy)' }}>{t.session_banner}</span>
           <button onClick={() => router.push('/apply')} className="text-sm font-bold underline mr-3" style={{ color: 'var(--navy)', background: 'none', border: 'none', cursor: 'pointer' }}>{t.session_resume}</button>
-          <button onClick={() => { localStorage.removeItem('iun_session_token'); setHasSession(false) }} className="text-xs" style={{ color: 'var(--gray-400)', background: 'none', border: 'none', cursor: 'pointer' }}>{t.session_new}</button>
+          <button onClick={() => { localStorage.removeItem('iun_session_token'); localStorage.removeItem('iun_form_draft'); router.push('/apply') }} className="text-xs" style={{ color: 'var(--gray-400)', background: 'none', border: 'none', cursor: 'pointer' }}>{t.session_new}</button>
         </div>
       )}
 
