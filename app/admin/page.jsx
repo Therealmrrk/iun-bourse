@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { browserClient } from '@/lib/supabase'
 import { translations } from '@/lib/translations'
+import { useLang } from '@/lib/useLang'
 
 export default function AdminLogin() {
-  const [lang, setLang] = useState('fr')
+  const { lang, switchLang } = useLang()
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
   const [err, setErr] = useState(false)
@@ -41,7 +42,7 @@ export default function AdminLogin() {
         <button onClick={handleLogin} disabled={loading} className="btn-primary w-full mt-6 justify-center">
           {loading ? '…' : t.admin_login_btn}
         </button>
-        <div className="mt-4 text-center"><button onClick={()=>setLang(l=>l==='fr'?'en':'fr')} className="text-xs" style={{background:'none',border:'none',cursor:'pointer',color:'var(--gray-400)'}}>{t.lang_switch}</button></div>
+        <div className="mt-4 text-center"><button onClick={()=>switchLang} className="text-xs" style={{background:'none',border:'none',cursor:'pointer',color:'var(--gray-400)'}}>{t.lang_switch}</button></div>
       </div>
     </div>
   )

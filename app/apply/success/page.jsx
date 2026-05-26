@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Nav from '@/components/Nav'
 import { translations } from '@/lib/translations'
+import { useLang } from '@/lib/useLang'
 
 const WA = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '✏️ [WhatsApp Institut Universitaire Nobel]'
 
 export default function Success() {
-  const [lang, setLang] = useState('fr')
+  const { lang, switchLang } = useLang()
   const [ref, setRef] = useState('')
   const t = translations[lang]
   const router = useRouter()
@@ -23,7 +24,7 @@ export default function Success() {
 
   return (
     <div style={{minHeight:'100vh',background:'var(--cream)'}}>
-      <Nav lang={lang} onLangSwitch={()=>setLang(l=>l==='fr'?'en':'fr')} t={t} showApply={false} />
+      <Nav lang={lang} onLangSwitch={switchLang} t={t} showApply={false} />
       <div className="flex items-center justify-center px-4 py-16">
         <div className="iun-card max-w-lg w-full text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{background:'#E6F7EE'}}>

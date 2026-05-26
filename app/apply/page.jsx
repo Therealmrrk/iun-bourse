@@ -9,11 +9,12 @@ import TogoSelector from '@/components/TogoSelector'
 import { translations } from '@/lib/translations'
 import { NATIONALITIES } from '@/lib/countries'
 import { generateToken } from '@/lib/utils'
+import { useLang } from '@/lib/useLang'
 
 const EMPTY = { full_name:'', email:'', nationality:'', phone_code:'+228', phone_number:'', wp_code:'+228', wp_number:'', in_togo:null, photo_url:'', photo_name:'', cert_url:'', cert_name:'', birth_cert_url:'', birth_cert_name:'' }
 
 export default function Page1() {
-  const [lang, setLang] = useState('fr')
+  const { lang, switchLang } = useLang()
   const [form, setForm] = useState(EMPTY)
   const [appId, setAppId] = useState(null)
   const [token, setToken] = useState(null)

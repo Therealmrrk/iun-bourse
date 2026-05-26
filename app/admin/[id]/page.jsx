@@ -5,9 +5,10 @@ import { browserClient } from '@/lib/supabase'
 import Modal from '@/components/Modal'
 import { translations } from '@/lib/translations'
 import { statusStyle, statusLabel, formatDate } from '@/lib/utils'
+import { useLang } from '@/lib/useLang'
 
 export default function AdminDetail() {
-  const [lang, setLang] = useState('fr')
+  const { lang, switchLang } = useLang()
   const [app, setApp] = useState(null)
   const [session, setSession] = useState(null)
   const [notes, setNotes] = useState('')

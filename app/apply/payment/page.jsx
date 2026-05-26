@@ -6,13 +6,14 @@ import PageIndicator from '@/components/PageIndicator'
 import FileUpload from '@/components/FileUpload'
 import Modal from '@/components/Modal'
 import { translations } from '@/lib/translations'
+import { useLang } from '@/lib/useLang'
 
 const TNAME = process.env.NEXT_PUBLIC_MixxbyYas_NAME || '✏️ [Nom TMoney]'
 const TNUM  = process.env.NEXT_PUBLIC_MixxbyYas_NUMBER || '✏️ [Numéro TMoney]'
 const WA    = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '✏️ [WhatsApp Institut Universitaire Nobel]'
 
 function PaymentInner() {
-  const [lang, setLang] = useState('fr')
+  const { lang, switchLang } = useLang()
   const [token, setToken] = useState(null)
   const [appId, setAppId] = useState(null)
   const [proofUrl, setProofUrl] = useState('')

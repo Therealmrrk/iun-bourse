@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Nav from '@/components/Nav'
 import { translations } from '@/lib/translations'
+import { useLang } from '@/lib/useLang'
 
 export default function Landing() {
-  const [lang, setLang] = useState('fr')
+  const { lang, switchLang } = useLang()
   const [hasSession, setHasSession] = useState(false)
   const t = translations[lang]
   const router = useRouter()
@@ -21,7 +22,7 @@ export default function Landing() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <Nav lang={lang} onLangSwitch={() => setLang(l => l === 'fr' ? 'en' : 'fr')} t={t} />
+      <Nav lang={lang} onLangSwitch={switchLang} t={t} />
 
       {/* Session resume banner */}
       {hasSession && (
