@@ -1,5 +1,4 @@
-// Saves or updates a draft application
-// Called when user clicks "Save" or "Next" on Page 1, or "Save" on Page 2
+// Saves or updates a draft application safely
 import { serverClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
@@ -19,40 +18,51 @@ export async function POST(req) {
       .eq('session_token', session_token)
       .maybeSingle()
 
-    // Do not allow saving if already submitted (unless resubmitting payment)
+    // Do not allow saving if already processed & accepted by admin
     if (existing?.status === 'payment_accepted') {
       return NextResponse.json({ error: 'already_accepted' }, { status: 403 })
     }
 
     let result
     if (existing) {
-      // Only allow editing payment_proof if status is payment_rejected
-      const allowedFields = existing.status === 'payment_rejected'
-        ? { payment_proof_url: fields.payment_proof_url }
-        : fields
+      // BUILD A DYNAMIC, SAFE ALLOWED FIELDS MAP
+      let fieldsToUpdate = { ...fields }
+
+      // If they were rejected, make sure they can supply a new proof AND flip their status back to submitted
+      if (existing.status === 'payment_rejected') {
+        fieldsToUpdate = {
+          payment_proof_url: fields.payment_proof_url,
+          status: fields.status || 'submitted' // Forces status to clear so admin sees it!
+        }
+      }
 
       const { data, error } = await serverClient
         .from('applications')
-        .update({ ...allowedFields, updated_at: new Date().toISOString() })
+        .update({ 
+          ...fieldsToUpdate, 
+          updated_at: new Date().toISOString() 
+        })
         .eq('session_token', session_token)
         .select()
         .single()
+        
       if (error) throw error
       result = data
     } else {
-      // New application
+      // Brand new application initialization
       const { data, error } = await serverClient
         .from('applications')
         .insert({ session_token, ...fields })
         .select()
         .single()
+        
       if (error) throw error
       result = data
     }
 
     return NextResponse.json({ application: result })
   } catch (err) {
-    console.error('save error:', err)
-    return NextResponse.json({ error: 'server_error' }, { status: 500 })
+    console.error('CRITICAL BACKEND SAVE ERROR:', err.message)
+    return NextResponse.json({ error: 'server_error', details: err.message }, { status: 500 })
   }
 }
