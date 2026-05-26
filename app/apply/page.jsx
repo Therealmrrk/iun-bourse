@@ -27,7 +27,7 @@ export default function Page1() {
 
   const up = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
-  // Load session on mount
+  // Load session safely on mount
   useEffect(() => {
     const existing = localStorage.getItem('iun_session_token')
     if (existing) {
@@ -52,6 +52,9 @@ export default function Page1() {
             setForm({ full_name:a.full_name||'', email:a.email||'', nationality:a.nationality||'', phone_code:a.phone_code||'+228', phone_number:a.phone_number||'', wp_code:a.wp_code||'+228', wp_number:a.wp_number||'', in_togo:a.in_togo, photo_url:a.photo_url||'', photo_name:'', cert_url:a.cert_url||'', cert_name:'', birth_cert_url:a.birth_cert_url||'', birth_cert_name:'' })
           }
           setLoading(false)
+        }).catch(err => {
+          console.error("Session fetch failed:", err)
+          setLoading(false)
         })
     } else {
       const t2 = generateToken()
@@ -69,18 +72,20 @@ export default function Page1() {
   }, [form, token])
 
   const checkDuplicates = async () => {
-    const res = await fetch('/api/apply/check', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email:form.email, phone_code:form.phone_code, phone_number:form.phone_number, wp_code:form.wp_code, wp_number:form.wp_number, exclude_id:appId }) })
-    return (await res.json()).duplicate
+    try {
+      const res = await fetch('/api/apply/check', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email:form.email, phone_code:form.phone_code, phone_number:form.phone_number, wp_code:form.wp_code, wp_number:form.wp_number, exclude_id:appId }) })
+      const data = await res.json()
+      return data.duplicate
+    } catch (e) {
+      return null
+    }
   }
 
-  
-  
   const doSave = async () => {
     if (!token) return null
     const res = await fetch('/api/apply/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_token:token, full_name:form.full_name, email:form.email, nationality:form.nationality, phone_code:form.phone_code, phone_number:form.phone_number, wp_code:form.wp_code, wp_number:form.wp_number, in_togo:form.in_togo, photo_url:form.photo_url, cert_url:form.cert_url, birth_cert_url:form.birth_cert_url, status:'draft_p1', page1_complete:false }) })
     const { application } = await res.json()
     if (application) setAppId(application.id)
-    console.log('doSave response:', application)
     return application
   }
 
@@ -95,20 +100,21 @@ export default function Page1() {
     setTimeout(() => setSavedMsg(false), 2500)
     setSaving(false)
   }
+
   const validate = () => {
-  const e = {}
-  if (!form.full_name.trim()) { e.full_name = true; console.log('FAIL: full_name') }
-  if (!form.email.trim() || !form.email.includes('@')) { e.email = true; console.log('FAIL: email') }
-  if (!form.nationality) { e.nationality = true; console.log('FAIL: nationality') }
-  if (!form.phone_code || !form.phone_number) { e.phone = true; console.log('FAIL: phone') }
-  if (!form.wp_code || !form.wp_number) { e.wp = true; console.log('FAIL: wp') }
-  if (!form.photo_url) { e.photo = true; console.log('FAIL: photo') }
-  if (!form.cert_url) { e.cert = true; console.log('FAIL: cert') }
-  if (!form.birth_cert_url) { e.birth = true; console.log('FAIL: birth') }
-  if (form.in_togo === null) { e.in_togo = true; console.log('FAIL: in_togo') }
-  setErrors(e)
-  return Object.keys(e).length === 0
-}
+    const e = {}
+    if (!form.full_name?.trim()) e.full_name = true
+    if (!form.email?.trim() || !form.email.includes('@')) e.email = true
+    if (!form.nationality) e.nationality = true
+    if (!form.phone_code || !form.phone_number) e.phone = true
+    if (!form.wp_code || !form.wp_number) e.wp = true
+    if (!form.photo_url) e.photo = true
+    if (!form.cert_url) e.cert = true
+    if (!form.birth_cert_url) e.birth = true
+    if (form.in_togo === null) e.in_togo = true
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
 
   const handleNext = async () => {
     if (!validate()) { window.scrollTo(0,0); return }
@@ -141,15 +147,14 @@ export default function Page1() {
       })
 
       if (res.ok) {
-        console.log('Save successful, moving to payment routing.');
-        router.push('/apply/payment');
+        // Clear local storage cache to avoid conflicts on next steps
+        localStorage.removeItem('iun_form_draft')
+        router.push('/apply/payment')
       } else {
-        const errorPayload = await res.json().catch(() => ({}));
-        alert('Failed to proceed. Server responded with an error status.');
-        console.error('API Error details:', errorPayload);
+        alert('Failed to proceed. Please check your form details.')
       }
     } catch(err) {
-      console.error('NEXT FUNCTION EXCEPTION:', err)
+      console.error('Navigation error details:', err)
       alert('An error occurred: ' + err.message)
     } finally {
       setSaving(false)
@@ -168,19 +173,16 @@ export default function Page1() {
           <p className="text-xs mb-6" style={{color:'var(--gray-400)'}}>{t.p1_sub}</p>
 
           <div className="space-y-5">
-            {/* Full name */}
             <div>
               <label className="iun-label">{t.full_name}</label>
               <input className={`iun-input ${errors.full_name?'error':''}`} value={form.full_name} onChange={e=>up('full_name',e.target.value)} placeholder="ADJOBI Kofi Mensah" />
               <p className="text-xs mt-1" style={{color:'var(--gray-400)'}}>{t.full_name_hint}</p>
             </div>
-            {/* Email */}
             <div>
               <label className="iun-label">{t.email}</label>
               <input type="email" className={`iun-input ${errors.email?'error':''}`} value={form.email} onChange={e=>up('email',e.target.value)} />
               {typeof errors.email === 'string' && <p className="text-xs mt-1 font-bold" style={{color:'var(--danger)'}}>{errors.email}</p>}
             </div>
-            {/* Nationality */}
             <div>
               <label className="iun-label">{t.nationality}</label>
               <select className={`iun-select ${errors.nationality?'error':''}`} value={form.nationality} onChange={e=>up('nationality',e.target.value)}>
@@ -188,17 +190,11 @@ export default function Page1() {
                 {NATIONALITIES.map(n=><option key={n}>{n}</option>)}
               </select>
             </div>
-            {/* Phone */}
             <PhoneInput label={t.phone} codeValue={form.phone_code} numberValue={form.phone_number} onCodeChange={v=>up('phone_code',v)} onNumberChange={v=>up('phone_number',v)} error={typeof errors.phone==='string'?errors.phone:null} t={t} />
-            {/* WhatsApp */}
             <PhoneInput label={t.whatsapp} codeValue={form.wp_code} numberValue={form.wp_number} onCodeChange={v=>up('wp_code',v)} onNumberChange={v=>up('wp_number',v)} error={typeof errors.wp==='string'?errors.wp:null} t={t} />
-            {/* Photo */}
             <FileUpload label={t.photo_label} hint={t.photo_hint} accept=".jpg,.jpeg,.png" maxMB={3} folder="photos" value={form.photo_url} filename={form.photo_name} onUpload={(url,name)=>{up('photo_url',url);up('photo_name',name)}} onRemove={()=>{up('photo_url','');up('photo_name','')}} error={errors.photo?t.err_required:null} t={t} useCamera={true} />
-            {/* Cert */}
             <FileUpload label={t.cert_label} hint={t.cert_hint} accept=".pdf,.jpg,.jpeg,.png" maxMB={3} folder="certs" value={form.cert_url} filename={form.cert_name} onUpload={(url,name)=>{up('cert_url',url);up('cert_name',name)}} onRemove={()=>{up('cert_url','');up('cert_name','')}} error={errors.cert?t.err_required:null} t={t} />
-            {/* Birth cert */}
             <FileUpload label={t.birth_label} hint={t.birth_hint} accept=".pdf,.jpg,.jpeg,.png" maxMB={3} folder="births" value={form.birth_cert_url} filename={form.birth_cert_name} onUpload={(url,name)=>{up('birth_cert_url',url);up('birth_cert_name',name)}} onRemove={()=>{up('birth_cert_url','');up('birth_cert_name','')}} error={errors.birth?t.err_required:null} t={t} />
-            {/* In Togo */}
             <TogoSelector value={form.in_togo} onChange={v=>up('in_togo',v)} t={t} />
             {errors.in_togo && <p className="text-xs font-bold" style={{color:'var(--danger)'}}>{t.err_required}</p>}
           </div>
