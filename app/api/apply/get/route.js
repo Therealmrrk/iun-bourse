@@ -1,4 +1,5 @@
-// Retrieves an existing application by session token (for resume)
+export const dynamic = 'force-dynamic'; // 👈 CRITICAL: Tells Vercel to process this route dynamically
+
 import { serverClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
