@@ -4,9 +4,10 @@ import { useRouter } from 'next/navigation'
 import { browserClient } from '@/lib/supabase'
 import { translations } from '@/lib/translations'
 import { statusStyle, statusLabel, formatDate } from '@/lib/utils'
+import { useLang } from '@/lib/useLang'
 
 export default function Dashboard() {
-  const [lang, setLang] = useState('fr')
+  const { lang, switchLang } = useLang()
   const [apps, setApps] = useState([])
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
@@ -74,7 +75,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={()=>setLang(l=>l==='fr'?'en':'fr')} className="text-xs px-3 py-1.5 rounded-lg" style={{background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.6)',border:'none',cursor:'pointer'}}>{t.lang_switch}</button>
+          <button onClick={switchLang} className="text-xs px-3 py-1.5 rounded-lg" style={{background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.6)',border:'none',cursor:'pointer'}}>{t.lang_switch}</button>
           <button onClick={logout} className="text-xs px-3 py-1.5 rounded-lg flex items-center gap-1" style={{background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.6)',border:'none',cursor:'pointer'}}>⎋ {t.logout_btn}</button>
         </div>
       </div>

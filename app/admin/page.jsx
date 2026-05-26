@@ -42,7 +42,7 @@ export default function AdminLogin() {
         <button onClick={handleLogin} disabled={loading} className="btn-primary w-full mt-6 justify-center">
           {loading ? '…' : t.admin_login_btn}
         </button>
-        <div className="mt-4 text-center"><button onClick={()=>switchLang} className="text-xs" style={{background:'none',border:'none',cursor:'pointer',color:'var(--gray-400)'}}>{t.lang_switch}</button></div>
+        <div className="mt-4 text-center"><button onClick={switchLang} className="text-xs" style={{background:'none',border:'none',cursor:'pointer',color:'var(--gray-400)'}}>{t.lang_switch}</button></div>
       </div>
     </div>
   )

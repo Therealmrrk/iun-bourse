@@ -89,7 +89,7 @@ export default function AdminDetail() {
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={()=>setLang(l=>l==='fr'?'en':'fr')} className="text-xs px-3 py-1.5 rounded-lg" style={{background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.6)',border:'none',cursor:'pointer'}}>{t.lang_switch}</button>
+          <button onClick={switchLang} className="text-xs px-3 py-1.5 rounded-lg" style={{background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.6)',border:'none',cursor:'pointer'}}>{t.lang_switch}</button>
           <button onClick={()=>browserClient.auth.signOut().then(()=>router.push('/admin'))} className="text-xs px-3 py-1.5 rounded-lg" style={{background:'rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.6)',border:'none',cursor:'pointer'}}>⎋ {t.logout_btn}</button>
         </div>
       </div>

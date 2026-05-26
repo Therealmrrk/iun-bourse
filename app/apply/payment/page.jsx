@@ -59,7 +59,7 @@ function PaymentInner() {
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--cream)' }}>
-      <Nav lang={lang} onLangSwitch={() => setLang(l => l==='fr'?'en':'fr')} t={t} showApply={false} />
+      <Nav lang={lang} onLangSwitch={switchLang} t={t} showApply={false} />
       <div className="max-w-2xl mx-auto px-4 py-10">
         <PageIndicator current={2} t={t} />
 
