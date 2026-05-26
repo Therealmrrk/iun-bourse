@@ -15,6 +15,7 @@ export default function AdminDetail() {
   const [savedNotes, setSavedNotes] = useState(false)
   const [modal, setModal] = useState(null) // 'accept' | 'decline'
   const [actionDone, setActionDone] = useState('')
+  const [proofUrl, setProofUrl] = useState('')
   const t = translations[lang]
   const router = useRouter()
   const { id } = useParams()
@@ -34,6 +35,13 @@ export default function AdminDetail() {
   const loadApp = async (s) => {
     const { data } = await browserClient.from('applications').select('*').eq('id', id).single()
     setApp(data); setNotes(data?.admin_notes || '')
+    if (data?.payment_proof_url) {
+      const path = data.payment_proof_url.replace(/.*documents\//,'')
+      const { data: signedData } = await browserClient.storage.from('documents').createSignedUrl(path, 3600)
+      if (signedData?.signedUrl) {
+        setProofUrl(signedData.signedUrl)
+      }
+    }
   }
 
   const getToken = async () => {
@@ -108,50 +116,71 @@ export default function AdminDetail() {
 
         {actionDone && <div className="rounded-xl p-3 mb-4 text-sm font-bold text-center" style={{background:'#E6F7EE',color:'#1A6B3A'}}>{actionDone}</div>}
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          {/* Personal info */}
-          <div className="iun-card">
-            <h3 className="section-title text-lg mb-3">{t.sec_personal}</h3>
-            <Field label={t.full_name} value={app.full_name} />
-            <Field label={t.email} value={app.email} />
-            <Field label={t.nationality} value={app.nationality} />
-            <Field label={t.phone} value={app.phone_code && app.phone_number ? `${app.phone_code} ${app.phone_number}` : null} />
-            <Field label={t.whatsapp} value={app.wp_code && app.wp_number ? `${app.wp_code} ${app.wp_number}` : null} />
-            <Field label={t.th_exam} value={app.in_togo === true ? t.exam_inperson : app.in_togo === false ? t.exam_online : null} />
-          </div>
+        <div className="grid sm:grid-cols-2 gap-4 items-start">
+          {/* Left Column */}
+          <div className="space-y-4">
+            {/* Personal info */}
+            <div className="iun-card">
+              <h3 className="section-title text-lg mb-3">{t.sec_personal}</h3>
+              <Field label={t.full_name} value={app.full_name} />
+              <Field label={t.email} value={app.email} />
+              <Field label={t.nationality} value={app.nationality} />
+              <Field label={t.phone} value={app.phone_code && app.phone_number ? `${app.phone_code} ${app.phone_number}` : null} />
+              <Field label={t.whatsapp} value={app.wp_code && app.wp_number ? `${app.wp_code} ${app.wp_number}` : null} />
+              <Field label={t.th_exam} value={app.in_togo === true ? t.exam_inperson : app.in_togo === false ? t.exam_online : null} />
+            </div>
 
-          {/* Admin decision */}
-          <div className="iun-card">
-            <h3 className="section-title text-lg mb-3">{t.sec_admin}</h3>
-            <div className="space-y-3 mb-4">
-              <div>
-                <label className="iun-label">{t.notes_lbl}</label>
-                <textarea className="iun-input text-sm resize-none" rows={4} value={notes} onChange={e=>setNotes(e.target.value)} />
-              </div>
-              <div className="flex items-center gap-3">
-                <button onClick={handleSaveNotes} className="btn-outline text-sm px-4 py-2">{t.save_notes}</button>
-                {savedNotes && <span className="text-xs font-bold" style={{color:'var(--success)'}}>{t.saved_notes}</span>}
+            {/* Documents */}
+            <div className="iun-card">
+              <h3 className="section-title text-lg mb-3">{t.sec_docs}</h3>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {[{lbl:t.photo_label,url:app.photo_url},{lbl:t.cert_label,url:app.cert_url},{lbl:t.birth_label,url:app.birth_cert_url},{lbl:t.proof_label,url:app.payment_proof_url}].map(d => d.url && (
+                  <button key={d.lbl} onClick={()=>getDocUrl(d.url)} className="flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold text-left" style={{border:'1px solid var(--gray-200)',background:'var(--cream)',color:'var(--navy)',cursor:'pointer'}}>
+                    📄 {d.lbl}
+                  </button>
+                ))}
               </div>
             </div>
-            {canDecide && (
-              <div className="space-y-2 pt-4" style={{borderTop:'1px solid var(--gray-100)'}}>
-                <button onClick={()=>setModal('accept')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#E6F7EE',color:'#1A6B3A'}}>✓ {t.accept_btn}</button>
-                <button onClick={()=>setModal('decline')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#FDECEA',color:'var(--danger)'}}>✗ {t.decline_btn}</button>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-4">
+            {/* Admin decision */}
+            <div className="iun-card">
+              <h3 className="section-title text-lg mb-3">{t.sec_admin}</h3>
+              <div className="space-y-3 mb-4">
+                <div>
+                  <label className="iun-label">{t.notes_lbl}</label>
+                  <textarea className="iun-input text-sm resize-none" rows={4} value={notes} onChange={e=>setNotes(e.target.value)} />
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={handleSaveNotes} className="btn-outline text-sm px-4 py-2">{t.save_notes}</button>
+                  {savedNotes && <span className="text-xs font-bold" style={{color:'var(--success)'}}>{t.saved_notes}</span>}
+                </div>
+              </div>
+              {canDecide && (
+                <div className="space-y-2 pt-4" style={{borderTop:'1px solid var(--gray-100)'}}>
+                  <button onClick={()=>setModal('accept')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#E6F7EE',color:'#1A6B3A'}}>✓ {t.accept_btn}</button>
+                  <button onClick={()=>setModal('decline')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#FDECEA',color:'var(--danger)'}}>✗ {t.decline_btn}</button>
+                </div>
+              )}
+              {!canDecide && <p className="text-xs text-center mt-2" style={{color:'var(--gray-400)'}}>— {statusLabel(app.status,t)} —</p>}
+            </div>
+
+            {/* Payment Proof Preview */}
+            {proofUrl && (
+              <div className="iun-card">
+                <h3 className="section-title text-lg mb-3">{t.proof_label}</h3>
+                {app.payment_proof_url?.split('?')[0].toLowerCase().endsWith('.pdf') ? (
+                  <iframe src={proofUrl} className="w-full h-96 rounded-xl border" title="Payment Proof PDF" />
+                ) : (
+                  <div className="text-center">
+                    <img src={proofUrl} alt="Payment Proof" className="w-full h-auto rounded-xl object-contain max-h-96 border cursor-zoom-in" onClick={() => window.open(proofUrl, '_blank')} />
+                    <p className="text-xs mt-2" style={{color:'var(--gray-400)'}}>{lang === 'fr' ? "Cliquez sur l'image pour l'ouvrir en grand format" : "Click on the image to open in full size"}</p>
+                  </div>
+                )}
               </div>
             )}
-            {!canDecide && <p className="text-xs text-center mt-2" style={{color:'var(--gray-400)'}}>— {statusLabel(app.status,t)} —</p>}
-          </div>
-
-          {/* Documents */}
-          <div className="iun-card sm:col-span-2">
-            <h3 className="section-title text-lg mb-3">{t.sec_docs}</h3>
-            <div className="grid sm:grid-cols-3 gap-3">
-              {[{lbl:t.photo_label,url:app.photo_url},{lbl:t.cert_label,url:app.cert_url},{lbl:t.birth_label,url:app.birth_cert_url},{lbl:t.proof_label,url:app.payment_proof_url}].map(d => d.url && (
-                <button key={d.lbl} onClick={()=>getDocUrl(d.url)} className="flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold text-left" style={{border:'1px solid var(--gray-200)',background:'var(--cream)',color:'var(--navy)',cursor:'pointer'}}>
-                  📄 {d.lbl}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       </div>
