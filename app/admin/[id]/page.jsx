@@ -186,7 +186,7 @@ export default function AdminDetail() {
               {!canDecide && <p className="text-xs text-center mt-2" style={{color:'var(--gray-400)'}}>— {statusLabel(app.status,t)} —</p>}
             </div>
 
-            {/* Payment Proof Preview */}
+            {/* Payment Proof Preview Panel */}
             {proofUrl && (
               <div className="iun-card">
                 <h3 className="section-title text-lg mb-3">{t.proof_label}</h3>
@@ -194,8 +194,15 @@ export default function AdminDetail() {
                   <iframe src={proofUrl} className="w-full h-96 rounded-xl border" title="Payment Proof PDF" />
                 ) : (
                   <div className="text-center">
-                    <img src={proofUrl} alt="Payment Proof" className="w-full h-auto rounded-xl object-contain max-h-96 border cursor-zoom-in" onClick={() => window.open(proofUrl, '_blank')} />
-                    <p className="text-xs mt-2" style={{color:'var(--gray-400)'}}>{lang === 'fr' ? "Cliquez sur l'image pour l'ouvrir en grand format" : "Click on the image to open in full size"}</p>
+                    <img 
+                      src={proofUrl} 
+                      alt="Payment Proof" 
+                      className="w-full h-auto rounded-xl object-contain max-h-96 border cursor-zoom-in" 
+                      onClick={() => window.open(proofUrl, '_blank')} 
+                    />
+                    <p className="text-xs mt-2" style={{color:'var(--gray-400)'}}>
+                      {lang === 'fr' ? "Cliquez sur l'image pour l'ouvrir en grand format" : "Click on the image to open in full size"}
+                    </p>
                   </div>
                 )}
               </div>
