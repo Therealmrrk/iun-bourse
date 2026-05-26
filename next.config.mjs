@@ -6,6 +6,7 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+  // This explicitly instructs the hosting server and browsers to let Supabase run its dynamic scripts
   async headers() {
     return [
       {
