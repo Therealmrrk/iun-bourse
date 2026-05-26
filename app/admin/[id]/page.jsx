@@ -59,12 +59,23 @@ export default function AdminDetail() {
 
   const loadApp = async (s) => {
     const { data } = await browserClient.from('applications').select('*').eq('id', id).single()
-    setApp(data); setNotes(data?.admin_notes || '')
+    console.log("Database application payload:", data)
+    
+    setApp(data)
+    setNotes(data?.admin_notes || '')
+    
     if (data?.payment_proof_url) {
+      console.log("Found raw proof path, fetching signed URL for:", data.payment_proof_url)
       const signedUrl = await getSignedUrl(data.payment_proof_url)
+      console.log("Resulting Signed URL:", signedUrl)
+      
       if (signedUrl) {
         setProofUrl(signedUrl)
+      } else {
+        console.error("API /api/admin/document returned null for signed URL.")
       }
+    } else {
+      console.warn("No payment_proof_url field found for this applicant.")
     }
   }
 
@@ -99,7 +110,7 @@ export default function AdminDetail() {
 
   const emailText = lang === 'fr'
     ? (modal === 'accept'
-      ? `Cher(e) ${app.full_name},\n\nVotre paiement a été confirmé et votre candidature a été acceptée.\n\n${app.in_togo ? 'Votre examen sera présentiel à Lomé. Les informations vous seront envoyées prochainement.' : 'Votre examen sera en ligne. Le lien vous sera envoyé prochainement.'}\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`
+      ? `Cher(e) ${app.full_name},\n\nVotre paiement a été confirmed et votre candidature a été acceptée.\n\n${app.in_togo ? 'Votre examen sera présentiel à Lomé. Les informations vous seront envoyées prochainement.' : 'Votre examen sera en ligne. Le lien vous sera envoyé prochainement.'}\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`
       : `Cher(e) ${app.full_name},\n\nNous n'avons pas pu confirmer votre paiement.\n\nVeuillez soumettre une nouvelle preuve de paiement sur le portail ou contacter l'équipe de l'Institut Universitaire Nobel via WhatsApp.\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`)
     : (modal === 'accept'
       ? `Dear ${app.full_name},\n\nYour payment has been confirmed and your application has been accepted.\n\n${app.in_togo ? 'Your exam will be in person in Lomé. Details will be sent shortly.' : 'Your exam will be online. The link will be sent shortly.'}\n\nRegards,\nThe Institut Universitaire Nobel Team`
@@ -186,11 +197,12 @@ export default function AdminDetail() {
               {!canDecide && <p className="text-xs text-center mt-2" style={{color:'var(--gray-400)'}}>— {statusLabel(app.status,t)} —</p>}
             </div>
 
-            {/* Payment Proof Preview Panel */}
-            {proofUrl && (
-              <div className="iun-card">
-                <h3 className="section-title text-lg mb-3">{t.proof_label}</h3>
-                {app.payment_proof_url?.split('?')[0].toLowerCase().endsWith('.pdf') ? (
+            {/* Payment Proof Preview Panel Wrapper with Fallback */}
+            <div className="iun-card">
+              <h3 className="section-title text-lg mb-3">{t.proof_label}</h3>
+              
+              {proofUrl ? (
+                app.payment_proof_url?.split('?')[0].toLowerCase().endsWith('.pdf') ? (
                   <iframe src={proofUrl} className="w-full h-96 rounded-xl border" title="Payment Proof PDF" />
                 ) : (
                   <div className="text-center">
@@ -204,9 +216,17 @@ export default function AdminDetail() {
                       {lang === 'fr' ? "Cliquez sur l'image pour l'ouvrir en grand format" : "Click on the image to open in full size"}
                     </p>
                   </div>
-                )}
-              </div>
-            )}
+                )
+              ) : (
+                <div className="p-6 text-center border rounded-xl" style={{borderColor:'var(--gray-200)', background:'rgba(0,0,0,0.02)'}}>
+                  <p className="text-sm font-medium" style={{color:'var(--gray-400)'}}>
+                    {app.payment_proof_url 
+                      ? (lang === 'fr' ? "Chargement de l'aperçu du reçu..." : "Loading receipt preview...")
+                      : (lang === 'fr' ? "Aucun reçu de paiement soumis" : "No payment receipt submitted")}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
