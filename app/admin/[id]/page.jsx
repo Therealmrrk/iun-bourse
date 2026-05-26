@@ -32,21 +32,40 @@ export default function AdminDetail() {
     document.documentElement.lang = lang
   }, [lang])
 
+  const getToken = async () => {
+    const { data: { session: s } } = await browserClient.auth.getSession()
+    return s?.access_token
+  }
+
+  const getSignedUrl = async (path) => {
+    try {
+      const token = await getToken()
+      const res = await fetch('/api/admin/document', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ path })
+      })
+      if (!res.ok) return null
+      const { signedUrl } = await res.json()
+      return signedUrl
+    } catch (e) {
+      console.error(e)
+      return null
+    }
+  }
+
   const loadApp = async (s) => {
     const { data } = await browserClient.from('applications').select('*').eq('id', id).single()
     setApp(data); setNotes(data?.admin_notes || '')
     if (data?.payment_proof_url) {
-      const path = data.payment_proof_url.replace(/.*documents\//,'')
-      const { data: signedData } = await browserClient.storage.from('documents').createSignedUrl(path, 3600)
-      if (signedData?.signedUrl) {
-        setProofUrl(signedData.signedUrl)
+      const signedUrl = await getSignedUrl(data.payment_proof_url)
+      if (signedUrl) {
+        setProofUrl(signedUrl)
       }
     }
-  }
-
-  const getToken = async () => {
-    const { data: { session: s } } = await browserClient.auth.getSession()
-    return s?.access_token
   }
 
   const handleAction = async (action) => {
@@ -62,8 +81,8 @@ export default function AdminDetail() {
   }
 
   const getDocUrl = async (path) => {
-    const { data } = await browserClient.storage.from('documents').createSignedUrl(path.replace(/.*documents\//,''), 3600)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    const signedUrl = await getSignedUrl(path)
+    if (signedUrl) window.open(signedUrl, '_blank')
   }
 
   if (!app) return <div className="min-h-screen flex items-center justify-center" style={{background:'var(--gray-100)'}}><p style={{color:'var(--gray-400)'}}>Chargement…</p></div>
