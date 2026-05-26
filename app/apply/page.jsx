@@ -72,14 +72,30 @@ export default function Page1() {
   }, [form, token])
 
   const checkDuplicates = async () => {
-    try {
-      const res = await fetch('/api/apply/check', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email:form.email, phone_code:form.phone_code, phone_number:form.phone_number, wp_code:form.wp_code, wp_number:form.wp_number, exclude_id:appId }) })
-      const data = await res.json()
-      return data.duplicate
-    } catch (e) {
-      return null
-    }
+  try {
+    const res = await fetch('/api/apply/check', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ 
+        email: form.email, 
+        phone_code: form.phone_code, 
+        phone_number: form.phone_number, 
+        wp_code: form.wp_code, 
+        wp_number: form.wp_number, 
+        exclude_id: appId 
+      }) 
+    })
+    
+    if (!res.ok) throw new Error("Server check failed")
+    const data = await res.json()
+    return data.duplicate
+  } catch (e) {
+    // 🛡️ THE FAIL-SAFE FIX: If an ad-blocker or extension kills the request, 
+    // we log it silently and return false so the applicant is NOT frozen on the button.
+    console.warn("Duplicate check intercepted by extension. Proceeding safely.", e.message)
+    return null 
   }
+}
 
   const doSave = async () => {
     if (!token) return null
