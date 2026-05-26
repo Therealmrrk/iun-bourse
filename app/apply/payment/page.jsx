@@ -7,8 +7,8 @@ import FileUpload from '@/components/FileUpload'
 import Modal from '@/components/Modal'
 import { translations } from '@/lib/translations'
 
-const TNAME = process.env.NEXT_PUBLIC_TMONEY_NAME || '✏️ [Nom TMoney]'
-const TNUM  = process.env.NEXT_PUBLIC_TMONEY_NUMBER || '✏️ [Numéro TMoney]'
+const TNAME = process.env.NEXT_PUBLIC_MixxbyYas_NAME || '✏️ [Nom TMoney]'
+const TNUM  = process.env.NEXT_PUBLIC_MixxbyYas_NUMBER || '✏️ [Numéro TMoney]'
 const WA    = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '✏️ [WhatsApp Institut Universitaire Nobel]'
 
 function PaymentInner() {
