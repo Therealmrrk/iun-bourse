@@ -34,7 +34,6 @@ body {
 
 /* Form elements */
 .iun-input {
-  /* 🛡️ FIX: Changed focus:border-navy to focus:border-navy-DEFAULT */
   @apply w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-sm
          outline-none transition-all duration-200
          focus:border-navy-DEFAULT;
@@ -43,7 +42,6 @@ body {
 .iun-input.error { @apply border-red-400 bg-red-50; }
 
 .iun-select {
-  /* 🛡️ FIX: Changed focus:border-navy to focus:border-navy-DEFAULT */
   @apply w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-sm
          outline-none cursor-pointer transition-all duration-200
          focus:border-navy-DEFAULT;
@@ -83,7 +81,6 @@ body {
 
 /* Outline button */
 .btn-outline {
-  /* 🛡️ FIX: Changed hover:border-navy to hover:border-navy-DEFAULT */
   @apply flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm
          transition-all duration-200 cursor-pointer;
   border: 2px solid var(--gray-200);
@@ -91,7 +88,8 @@ body {
   color: var(--gray-600);
   font-family: 'Nunito Sans', sans-serif;
 }
-.btn-outline:hover { border-color: var(--navy-DEFAULT); color: var(--navy-DEFAULT); }
+/* ✅ FIXED: Pointed directly back to valid root CSS variables */
+.btn-outline:hover { border-color: var(--navy); color: var(--navy); }
 
 /* Status badge */
 .status-badge {
