@@ -70,7 +70,18 @@ export default function AdminDetail() {
       console.log("Found raw proof path, fetching signed URL for:", data.payment_proof_url)
       const signedUrl = await getSignedUrl(data.payment_proof_url)
       console.log("Resulting Signed URL:", signedUrl)
-      if (signedUrl) setProofUrl(signedUrl)
+      
+      if (signedUrl) {
+        setProofUrl(signedUrl)
+      } else {
+        // FALLBACK: If the API fails to sign, construct a direct storage path to try rendering it anyway
+        console.warn("API returned null for signed URL. Attempting public path fallback...")
+        const projectUrl = "https://your-supabase-project-id.supabase.co" // Replace with your base Supabase URL if needed
+        const fallbackUrl = `${projectUrl}/storage/v1/object/public/applications/${data.payment_proof_url}`
+        setProofUrl(fallbackUrl)
+      }
+    } else {
+      console.warn("No payment_proof_url found for this record in the database row.")
     }
 
     // Resolve student passport photo signed URL for inline display
@@ -79,7 +90,7 @@ export default function AdminDetail() {
       if (imgUrl) setPassportLiveUrl(imgUrl)
     }
   }
-
+  
   const handleAction = async (action) => {
     const token = await getToken()
     const res = await fetch(`/api/admin/${action}`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({ id, lang, notes }) })
