@@ -16,6 +16,7 @@ export default function AdminDetail() {
   const [modal, setModal] = useState(null) // 'accept' | 'decline'
   const [actionDone, setActionDone] = useState('')
   const [proofUrl, setProofUrl] = useState('')
+  const [passportLiveUrl, setPassportLiveUrl] = useState('')
   const t = translations[lang]
   const router = useRouter()
   const { id } = useParams()
@@ -64,18 +65,18 @@ export default function AdminDetail() {
     setApp(data)
     setNotes(data?.admin_notes || '')
     
+    // Resolve payment proof signed URL
     if (data?.payment_proof_url) {
       console.log("Found raw proof path, fetching signed URL for:", data.payment_proof_url)
       const signedUrl = await getSignedUrl(data.payment_proof_url)
       console.log("Resulting Signed URL:", signedUrl)
-      
-      if (signedUrl) {
-        setProofUrl(signedUrl)
-      } else {
-        console.error("API /api/admin/document returned null for signed URL.")
-      }
-    } else {
-      console.warn("No payment_proof_url field found for this applicant.")
+      if (signedUrl) setProofUrl(signedUrl)
+    }
+
+    // Resolve student passport photo signed URL for inline display
+    if (data?.photo_url) {
+      const imgUrl = await getSignedUrl(data.photo_url)
+      if (imgUrl) setPassportLiveUrl(imgUrl)
     }
   }
 
@@ -110,7 +111,7 @@ export default function AdminDetail() {
 
   const emailText = lang === 'fr'
     ? (modal === 'accept'
-      ? `Cher(e) ${app.full_name},\n\nVotre paiement a été confirmed et votre candidature a été acceptée.\n\n${app.in_togo ? 'Votre examen sera présentiel à Lomé. Les informations vous seront envoyées prochainement.' : 'Votre examen sera en ligne. Le lien vous sera envoyé prochainement.'}\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`
+      ? `Cher(e) ${app.full_name},\n\nVotre paiement a été confirmé et votre candidature a été acceptée.\n\n${app.in_togo ? 'Votre examen sera présentiel à Lomé. Les informations vous seront envoyées prochainement.' : 'Votre examen sera en ligne. Le lien vous sera envoyé prochainement.'}\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`
       : `Cher(e) ${app.full_name},\n\nNous n'avons pas pu confirmer votre paiement.\n\nVeuillez soumettre une nouvelle preuve de paiement sur le portail ou contacter l'équipe de l'Institut Universitaire Nobel via WhatsApp.\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`)
     : (modal === 'accept'
       ? `Dear ${app.full_name},\n\nYour payment has been confirmed and your application has been accepted.\n\n${app.in_togo ? 'Your exam will be in person in Lomé. Details will be sent shortly.' : 'Your exam will be online. The link will be sent shortly.'}\n\nRegards,\nThe Institut Universitaire Nobel Team`
@@ -151,7 +152,25 @@ export default function AdminDetail() {
           <div className="space-y-4">
             {/* Personal info */}
             <div className="iun-card">
-              <h3 className="section-title text-lg mb-3">{t.sec_personal}</h3>
+              <h3 className="section-title text-lg mb-4">{t.sec_personal}</h3>
+              
+              {/* Inline Passport Photo Frame */}
+              {passportLiveUrl ? (
+                <div className="mb-4 flex justify-center sm:justify-start">
+                  <img 
+                    src={passportLiveUrl} 
+                    alt="Applicant Passport" 
+                    className="w-28 h-28 object-cover rounded-xl border-2 shadow-sm cursor-zoom-in" 
+                    style={{borderColor:'var(--gold)'}}
+                    onClick={() => window.open(passportLiveUrl, '_blank')}
+                  />
+                </div>
+              ) : app.photo_url && (
+                <div className="mb-4 text-xs font-semibold" style={{color:'var(--gray-400)'}}>
+                  {lang === 'fr' ? "Chargement de la photo..." : "Loading photo..."}
+                </div>
+              )}
+
               <Field label={t.full_name} value={app.full_name} />
               <Field label={t.email} value={app.email} />
               <Field label={t.nationality} value={app.nationality} />
@@ -163,9 +182,13 @@ export default function AdminDetail() {
             {/* Documents */}
             <div className="iun-card">
               <h3 className="section-title text-lg mb-3">{t.sec_docs}</h3>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {[{lbl:t.photo_label,url:app.photo_url},{lbl:t.cert_label,url:app.cert_url},{lbl:t.birth_label,url:app.birth_cert_url},{lbl:t.proof_label,url:app.payment_proof_url}].map(d => d.url && (
-                  <button key={d.lbl} onClick={()=>getDocUrl(d.url)} className="flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold text-left" style={{border:'1px solid var(--gray-200)',background:'var(--cream)',color:'var(--navy)',cursor:'pointer'}}>
+              <div className="grid grid-cols-1 gap-2">
+                {/* Excluded photo_url here since it is now rendered automatically at the top */}
+                {[
+                  {lbl:t.cert_label, url:app.cert_url},
+                  {lbl:t.birth_label, url:app.birth_cert_url}
+                ].map(d => d.url && (
+                  <button key={d.lbl} onClick={()=>getDocUrl(d.url)} className="flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold text-left w-full" style={{border:'1px solid var(--gray-200)',background:'var(--cream)',color:'var(--navy)',cursor:'pointer'}}>
                     📄 {d.lbl}
                   </button>
                 ))}
@@ -197,7 +220,7 @@ export default function AdminDetail() {
               {!canDecide && <p className="text-xs text-center mt-2" style={{color:'var(--gray-400)'}}>— {statusLabel(app.status,t)} —</p>}
             </div>
 
-            {/* Payment Proof Preview Panel Wrapper with Fallback */}
+            {/* Payment Proof Preview Panel */}
             <div className="iun-card">
               <h3 className="section-title text-lg mb-3">{t.proof_label}</h3>
               
@@ -209,7 +232,7 @@ export default function AdminDetail() {
                     <img 
                       src={proofUrl} 
                       alt="Payment Proof" 
-                      className="w-full h-auto rounded-xl object-contain max-h-96 border cursor-zoom-in" 
+                      className="w-full h-auto rounded-xl object-contain max-h-96 border cursor-zoom-in shadow-sm" 
                       onClick={() => window.open(proofUrl, '_blank')} 
                     />
                     <p className="text-xs mt-2" style={{color:'var(--gray-400)'}}>
