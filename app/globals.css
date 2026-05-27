@@ -34,18 +34,26 @@ body {
 
 /* Form elements */
 .iun-input {
+  /* Removed focus state from here to fix the syntax crash */
   @apply w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-sm
-         outline-none transition-all duration-200
-         focus:border-navy-DEFAULT;
+         outline-none transition-all duration-200;
   font-family: 'Nunito Sans', sans-serif;
+}
+/* Standard native CSS handle for focus state */
+.iun-input:focus {
+  border-color: var(--navy);
 }
 .iun-input.error { @apply border-red-400 bg-red-50; }
 
 .iun-select {
+  /* Removed focus state from here to fix the syntax crash */
   @apply w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-sm
-         outline-none cursor-pointer transition-all duration-200
-         focus:border-navy-DEFAULT;
+         outline-none cursor-pointer transition-all duration-200;
   font-family: 'Nunito Sans', sans-serif;
+}
+/* Standard native CSS handle for focus state */
+.iun-select:focus {
+  border-color: var(--navy);
 }
 
 .iun-label {
@@ -88,7 +96,6 @@ body {
   color: var(--gray-600);
   font-family: 'Nunito Sans', sans-serif;
 }
-/* ✅ FIXED: Pointed directly back to valid root CSS variables */
 .btn-outline:hover { border-color: var(--navy); color: var(--navy); }
 
 /* Status badge */
