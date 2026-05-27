@@ -194,7 +194,6 @@ export default function AdminDetail() {
             <div className="iun-card">
               <h3 className="section-title text-lg mb-3">{t.sec_docs}</h3>
               <div className="grid grid-cols-1 gap-2">
-                {/* Excluded photo_url here since it is now rendered automatically at the top */}
                 {[
                   {lbl:t.cert_label, url:app.cert_url},
                   {lbl:t.birth_label, url:app.birth_cert_url}
@@ -209,29 +208,7 @@ export default function AdminDetail() {
 
           {/* Right Column */}
           <div className="space-y-4">
-            {/* Admin decision */}
-            <div className="iun-card">
-              <h3 className="section-title text-lg mb-3">{t.sec_admin}</h3>
-              <div className="space-y-3 mb-4">
-                <div>
-                  <label className="iun-label">{t.notes_lbl}</label>
-                  <textarea className="iun-input text-sm resize-none" rows={4} value={notes} onChange={e=>setNotes(e.target.value)} />
-                </div>
-                <div className="flex items-center gap-3">
-                  <button onClick={handleSaveNotes} className="btn-outline text-sm px-4 py-2">{t.save_notes}</button>
-                  {savedNotes && <span className="text-xs font-bold" style={{color:'var(--success)'}}>{t.saved_notes}</span>}
-                </div>
-              </div>
-              {canDecide && (
-                <div className="space-y-2 pt-4" style={{borderTop:'1px solid var(--gray-100)'}}>
-                  <button onClick={()=>setModal('accept')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#E6F7EE',color:'#1A6B3A'}}>✓ {t.accept_btn}</button>
-                  <button onClick={()=>setModal('decline')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#FDECEA',color:'var(--danger)'}}>✗ {t.decline_btn}</button>
-                </div>
-              )}
-              {!canDecide && <p className="text-xs text-center mt-2" style={{color:'var(--gray-400)'}}>— {statusLabel(app.status,t)} —</p>}
-            </div>
-
-            {/* Payment Proof Preview Panel */}
+            {/* Payment Proof Preview Panel (Moved up above Administrative Decision) */}
             <div className="iun-card">
               <h3 className="section-title text-lg mb-3">{t.proof_label}</h3>
               
@@ -260,6 +237,28 @@ export default function AdminDetail() {
                   </p>
                 </div>
               )}
+            </div>
+
+            {/* Admin decision card block (Now cleanly lands below the receipt) */}
+            <div className="iun-card">
+              <h3 className="section-title text-lg mb-3">{t.sec_admin}</h3>
+              <div className="space-y-3 mb-4">
+                <div>
+                  <label className="iun-label">{t.notes_lbl}</label>
+                  <textarea className="iun-input text-sm resize-none" rows={4} value={notes} onChange={e=>setNotes(e.target.value)} />
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={handleSaveNotes} className="btn-outline text-sm px-4 py-2">{t.save_notes}</button>
+                  {savedNotes && <span className="text-xs font-bold" style={{color:'var(--success)'}}>{t.saved_notes}</span>}
+                </div>
+              </div>
+              {canDecide && (
+                <div className="space-y-2 pt-4" style={{borderTop:'1px solid var(--gray-100)'}}>
+                  <button onClick={()=>setModal('accept')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#E6F7EE',color:'#1A6B3A'}}>✓ {t.accept_btn}</button>
+                  <button onClick={()=>setModal('decline')} className="w-full py-3 rounded-xl font-bold text-sm border-none cursor-pointer" style={{background:'#FDECEA',color:'var(--danger)'}}>✗ {t.decline_btn}</button>
+                </div>
+              )}
+              {!canDecide && <p className="text-xs text-center mt-2" style={{color:'var(--gray-400)'}}>— {statusLabel(app.status,t)} —</p>}
             </div>
           </div>
         </div>
