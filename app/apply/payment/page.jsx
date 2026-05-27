@@ -35,27 +35,53 @@ function PaymentInner() {
     fetch(`/api/apply/get?token=${tk}`)
       .then(r => r.json())
       .then(({ application: a }) => {
-      if (!a || (a.status !== 'draft_p2' && a.status !== 'payment_rejected')) { router.replace('/apply'); return }
+        if (!a || (a.status !== 'draft_p2' && a.status !== 'payment_rejected')) { router.replace('/apply'); return }
         setAppId(a.id)
         if (a.payment_proof_url) { setProofUrl(a.payment_proof_url); setProofName('preuve_paiement') }
-        setLoading(false)
+        loading && setLoading(false)
       })
   }, [])
 
   const handleSave = async () => {
     if (!proofUrl || !token) return
     setSaving(true)
-    await fetch('/api/apply/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_token:token, payment_proof_url:proofUrl }) })
-    setSavedMsg(true); setTimeout(()=>setSavedMsg(false),2500); setSaving(false)
+    await fetch('/api/apply/save', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ session_token: token, payment_proof_url: proofUrl }) 
+    })
+    setSavedMsg(true); setTimeout(() => setSavedMsg(false), 2500); setSaving(false)
   }
 
   const handleSend = async () => {
-    const res = await fetch('/api/apply/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_token:token }) })
-    if ((await res.json()).application) {
-      localStorage.removeItem('iun_form_draft')
-      router.push('/apply/success')
+    if (!proofUrl || !token) return
+    setSaving(true)
+
+    try {
+      // 1. Auto-save the payment proof URL path first to ensure the cell is populated
+      await fetch('/api/apply/save', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ session_token: token, payment_proof_url: proofUrl }) 
+      })
+
+      // 2. Finalize application submission
+      const res = await fetch('/api/apply/submit', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ session_token: token }) 
+      })
+      
+      if ((await res.json()).application) {
+        localStorage.removeItem('iun_form_draft')
+        router.push('/apply/success')
+      }
+    } catch (error) {
+      console.error("Submission pipeline failed:", error)
+    } finally {
+      setShowModal(false)
+      setSaving(false)
     }
-    setShowModal(false)
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cream)'}}><p style={{color:'var(--gray-400)'}}>Chargement…</p></div>
@@ -107,12 +133,12 @@ function PaymentInner() {
           <FileUpload label={t.proof_label} hint={t.proof_hint} accept=".jpg,.jpeg,.png,.pdf" maxMB={1} folder="payments" value={proofUrl} filename={proofName} onUpload={(url,name)=>{setProofUrl(url);setProofName(name)}} onRemove={()=>{setProofUrl('');setProofName('')}} t={t} />
 
           <div className="flex items-center justify-between mt-8 pt-6 flex-wrap gap-3" style={{borderTop:'1px solid var(--gray-100)'}}>
-            <button onClick={()=>router.push('/apply')} className="btn-outline">{t.previous_btn}</button>
+            <button onClick={()=>router.push('/apply')} disabled={saving} className="btn-outline">{t.previous_btn}</button>
             <div className="flex items-center gap-3">
               <button onClick={handleSave} disabled={saving||!proofUrl} className="btn-outline">
                 {savedMsg ? t.saved_msg : t.save_btn}
               </button>
-              <button onClick={()=>setShowModal(true)} disabled={!proofUrl} className="btn-gold">
+              <button onClick={()=>setShowModal(true)} disabled={saving||!proofUrl} className="btn-gold">
                 {t.send_btn}
               </button>
             </div>
