@@ -25,15 +25,17 @@ export async function POST(req) {
 
     let result
     if (existing) {
-      // BUILD A DYNAMIC, SAFE ALLOWED FIELDS MAP
+      // 🛠️ FIX: Clean, reliable object binding matching Phase 1 mechanics
       let fieldsToUpdate = { ...fields }
 
-      // If they were rejected, make sure they can supply a new proof AND flip their status back to submitted
+      // If they were rejected, explicitly enforce changing the tracking flag back to submitted
       if (existing.status === 'payment_rejected') {
-        fieldsToUpdate = {
-          payment_proof_url: fields.payment_proof_url,
-          status: fields.status || 'submitted' // Forces status to clear so admin sees it!
-        }
+        fieldsToUpdate.status = fields.status || 'submitted'
+      }
+
+      // Explicitly ensure payment_proof_url is preserved if passed in the payload body
+      if (fields.payment_proof_url) {
+        fieldsToUpdate.payment_proof_url = fields.payment_proof_url
       }
 
       const { data, error } = await serverClient
@@ -49,7 +51,7 @@ export async function POST(req) {
       if (error) throw error
       result = data
     } else {
-      // Brand new application initialization
+      // Brand new application initialization (Phase 1 first creation step)
       const { data, error } = await serverClient
         .from('applications')
         .insert({ session_token, ...fields })
