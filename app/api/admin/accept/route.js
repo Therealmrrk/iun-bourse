@@ -35,8 +35,8 @@ export async function POST(req) {
     // Send acceptance email to applicant
     const { subject, html } = acceptanceEmail(app, lang)
     await resend.emails.send({
-      from: 'onboarding@resend.dev', 
-      to: ['ugorjimark8@gmail.com'], 
+      from: process.env.EMAIL_FROM,
+      to:   app.email,
       subject,
       html,
     })
