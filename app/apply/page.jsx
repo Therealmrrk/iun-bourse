@@ -7,7 +7,7 @@ import PhoneInput from '@/components/PhoneInput'
 import FileUpload from '@/components/FileUpload'
 import TogoSelector from '@/components/TogoSelector'
 import { translations } from '@/lib/translations'
-import { NATIONALITIES } from '@/lib/countries'
+import { NATIONALITIES, validatePhoneNumber, cleanPhoneNumber } from '@/lib/countries'
 import { generateToken } from '@/lib/utils'
 import { useLang } from '@/lib/useLang'
 
@@ -79,9 +79,9 @@ export default function Page1() {
       body: JSON.stringify({ 
         email: form.email, 
         phone_code: form.phone_code, 
-        phone_number: form.phone_number, 
+        phone_number: cleanPhoneNumber(form.phone_code, form.phone_number), 
         wp_code: form.wp_code, 
-        wp_number: form.wp_number, 
+        wp_number: cleanPhoneNumber(form.wp_code, form.wp_number), 
         exclude_id: appId 
       }) 
     })
@@ -99,7 +99,7 @@ export default function Page1() {
 
   const doSave = async () => {
     if (!token) return null
-    const res = await fetch('/api/apply/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_token:token, full_name:form.full_name, email:form.email, nationality:form.nationality, phone_code:form.phone_code, phone_number:form.phone_number, wp_code:form.wp_code, wp_number:form.wp_number, in_togo:form.in_togo, photo_url:form.photo_url, cert_url:form.cert_url, birth_cert_url:form.birth_cert_url, status:'draft_p1', page1_complete:false }) })
+    const res = await fetch('/api/apply/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_token:token, full_name:form.full_name, email:form.email, nationality:form.nationality, phone_code:form.phone_code, phone_number:cleanPhoneNumber(form.phone_code, form.phone_number), wp_code:form.wp_code, wp_number:cleanPhoneNumber(form.wp_code, form.wp_number), in_togo:form.in_togo, photo_url:form.photo_url, cert_url:form.cert_url, birth_cert_url:form.birth_cert_url, status:'draft_p1', page1_complete:false }) })
     const { application } = await res.json()
     if (application) setAppId(application.id)
     return application
@@ -122,8 +122,19 @@ export default function Page1() {
     if (!form.full_name?.trim()) e.full_name = true
     if (!form.email?.trim() || !form.email.includes('@')) e.email = true
     if (!form.nationality) e.nationality = true
-    if (!form.phone_code || !form.phone_number) e.phone = true
-    if (!form.wp_code || !form.wp_number) e.wp = true
+    
+    if (!form.phone_code || !form.phone_number) {
+      e.phone = t.err_required
+    } else if (!validatePhoneNumber(form.phone_code, form.phone_number)) {
+      e.phone = t.err_invalid_phone
+    }
+
+    if (!form.wp_code || !form.wp_number) {
+      e.wp = t.err_required
+    } else if (!validatePhoneNumber(form.wp_code, form.wp_number)) {
+      e.wp = t.err_invalid_wp
+    }
+
     if (!form.photo_url) e.photo = true
     if (!form.cert_url) e.cert = true
     if (!form.birth_cert_url) e.birth = true
@@ -150,9 +161,9 @@ export default function Page1() {
           email: form.email,
           nationality: form.nationality,
           phone_code: form.phone_code,
-          phone_number: form.phone_number,
+          phone_number: cleanPhoneNumber(form.phone_code, form.phone_number),
           wp_code: form.wp_code,
-          wp_number: form.wp_number,
+          wp_number: cleanPhoneNumber(form.wp_code, form.wp_number),
           in_togo: form.in_togo,
           photo_url: form.photo_url,
           cert_url: form.cert_url,
