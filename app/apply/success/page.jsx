@@ -16,9 +16,21 @@ export default function Success() {
   useEffect(() => {
     const tk = localStorage.getItem('iun_session_token')
     if (tk) {
-      fetch(`/api/apply/get?token=${tk}`).then(r=>r.json()).then(({application:a})=>{
-        if (a?.id) setRef(a.id)
-      })
+      fetch(`/api/apply/get?token=${tk}`)
+        .then(r => r.json())
+        .then(({ application: a }) => {
+          if (a?.id) setRef(a.id)
+          
+          // FIXED: Clear everything ONLY after we have successfully displayed the reference code!
+          localStorage.removeItem('iun_session_token')
+          localStorage.removeItem('iun_form_draft')
+        })
+        .catch(err => {
+          console.error("Error retrieving confirmation profile details:", err)
+          // Fail-safe cleanup anyway if the session is broken or corrupted
+          localStorage.removeItem('iun_session_token')
+          localStorage.removeItem('iun_form_draft')
+        })
     }
   }, [])
 

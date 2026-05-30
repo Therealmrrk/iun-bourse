@@ -174,8 +174,8 @@ export default function Page1() {
       })
 
       if (res.ok) {
-        // Clear local storage cache to avoid conflicts on next steps
-        localStorage.removeItem('iun_form_draft')
+        // 🟢 FIXED: Remove the line removing 'iun_form_draft' here 
+        // to preserve states if the applicant navigates backward.
         router.push('/apply/payment')
       } else {
         alert('Failed to proceed. Please check your form details.')
