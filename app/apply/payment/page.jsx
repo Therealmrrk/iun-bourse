@@ -29,16 +29,38 @@ function PaymentInner() {
 
   useEffect(() => {
     const tk = localStorage.getItem('iun_session_token')
-    if (!tk) { router.replace('/apply'); return }
+    if (!tk) { 
+      router.replace('/apply')
+      return 
+    }
     setToken(tk)
     setIsResubmit(params.get('resubmit') === 'true')
+    
     fetch(`/api/apply/get?token=${tk}`)
       .then(r => r.json())
       .then(({ application: a }) => {
-        if (!a || (a.status !== 'draft_p2' && a.status !== 'payment_rejected')) { router.replace('/apply'); return }
+        // Hardened state validation to handle volatile background processes safely
+        if (!a) { 
+          router.replace('/apply')
+          return 
+        }
+        
+        // Direct safety fallback route conditions
+        if (a.status === 'submitted' || a.status === 'payment_accepted') {
+          router.replace('/apply/success')
+          return
+        }
+
         setAppId(a.id)
-        if (a.payment_proof_url) { setProofUrl(a.payment_proof_url); setProofName('preuve_paiement') }
-        loading && setLoading(false)
+        if (a.payment_proof_url) { 
+          setProofUrl(a.payment_proof_url)
+          setProofName('preuve_paiement') 
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error("Payment sync fetch failed:", err)
+        setLoading(false)
       })
   }, [])
 
@@ -50,7 +72,15 @@ function PaymentInner() {
       headers: { 'Content-Type': 'application/json' }, 
       body: JSON.stringify({ session_token: token, payment_proof_url: proofUrl }) 
     })
-    setSavedMsg(true); setTimeout(() => setSavedMsg(false), 2500); setSaving(false)
+    setSavedMsg(true)
+    setTimeout(() => setSavedMsg(false), 2500)
+    setSaving(false)
+  }
+
+  const handlePreviousNavigation = () => {
+    // 🟢 FREEZE CURRENT VIEW: Halts state engine rendering loops before path push
+    setLoading(true)
+    router.push('/apply')
   }
 
   const handleSend = async () => {
@@ -74,6 +104,7 @@ function PaymentInner() {
       
       if ((await res.json()).application) {
         localStorage.removeItem('iun_form_draft')
+        setLoading(true) // Freeze execution landscape before final conversion route 
         router.push('/apply/success')
       }
     } catch (error) {
@@ -133,7 +164,9 @@ function PaymentInner() {
           <FileUpload label={t.proof_label} hint={t.proof_hint} accept=".jpg,.jpeg,.png,.pdf" maxMB={1} folder="payments" value={proofUrl} filename={proofName} onUpload={(url,name)=>{setProofUrl(url);setProofName(name)}} onRemove={()=>{setProofUrl('');setProofName('')}} t={t} />
 
           <div className="flex items-center justify-between mt-8 pt-6 flex-wrap gap-3" style={{borderTop:'1px solid var(--gray-100)'}}>
-            <button onClick={()=>router.push('/apply')} disabled={saving} className="btn-outline">{t.previous_btn}</button>
+            <button onClick={handlePreviousNavigation} disabled={saving} className="btn-outline">
+              {t.previous_btn}
+            </button>
             <div className="flex items-center gap-3">
               <button onClick={handleSave} disabled={saving||!proofUrl} className="btn-outline">
                 {savedMsg ? t.saved_msg : t.save_btn}

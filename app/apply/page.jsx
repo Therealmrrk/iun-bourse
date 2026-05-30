@@ -72,30 +72,28 @@ export default function Page1() {
   }, [form, token])
 
   const checkDuplicates = async () => {
-  try {
-    const res = await fetch('/api/apply/check', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ 
-        email: form.email, 
-        phone_code: form.phone_code, 
-        phone_number: cleanPhoneNumber(form.phone_code, form.phone_number), 
-        wp_code: form.wp_code, 
-        wp_number: cleanPhoneNumber(form.wp_code, form.wp_number), 
-        exclude_id: appId 
-      }) 
-    })
-    
-    if (!res.ok) throw new Error("Server check failed")
-    const data = await res.json()
-    return data.duplicate
-  } catch (e) {
-    // 🛡️ THE FAIL-SAFE FIX: If an ad-blocker or extension kills the request, 
-    // we log it silently and return false so the applicant is NOT frozen on the button.
-    console.warn("Duplicate check intercepted by extension. Proceeding safely.", e.message)
-    return null 
+    try {
+      const res = await fetch('/api/apply/check', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ 
+          email: form.email, 
+          phone_code: form.phone_code, 
+          phone_number: cleanPhoneNumber(form.phone_code, form.phone_number), 
+          wp_code: form.wp_code, 
+          wp_number: cleanPhoneNumber(form.wp_code, form.wp_number), 
+          exclude_id: appId 
+        }) 
+      })
+      
+      if (!res.ok) throw new Error("Server check failed")
+      const data = await res.json()
+      return data.duplicate
+    } catch (e) {
+      console.warn("Duplicate check intercepted by extension. Proceeding safely.", e.message)
+      return null 
+    }
   }
-}
 
   const doSave = async () => {
     if (!token) return null
@@ -174,8 +172,9 @@ export default function Page1() {
       })
 
       if (res.ok) {
-        // 🟢 FIXED: Remove the line removing 'iun_form_draft' here 
-        // to preserve states if the applicant navigates backward.
+        // FIXED: Freeze the component rendering loop before forcing Next.js router transitions.
+        // This halts background redirect conflicts from catching old states.
+        setLoading(true)
         router.push('/apply/payment')
       } else {
         alert('Failed to proceed. Please check your form details.')
