@@ -33,7 +33,7 @@ export default function Landing() {
       )}
 
       {/* Hero */}
-      <div className="text-center px-6 py-20" style={{ background: 'linear-gradient(135deg,#0C1B33 0%,#162A4A 100%)' }}>
+      <div className="text-center px-6 py-20" style={{ background: 'linear-gradient(135deg,#1D4492 0%,#2854B0 100%)' }}>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-6" style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.4)', color: '#E2C47A' }}>🎓 {t.badge}</div>
         <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{t.hero_title}</h1>
         <p className="text-base mb-8 max-w-xl mx-auto" style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.7 }}>{t.hero_desc}</p>
