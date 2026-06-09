@@ -9,8 +9,8 @@ module.exports = {
       colors: {
         navy: {
           DEFAULT: '#1D4492',
-          light:   '#2854B0',
-          mid:     '#234C9E',
+          light:   '#1D4492',
+          mid:     '#1D4492',
         },
         gold: {
           DEFAULT: '#C9A84C',
