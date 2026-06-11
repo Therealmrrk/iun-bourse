@@ -31,7 +31,7 @@ export default function Nav({ lang, onLangSwitch, t, showApply = true }) {
           {t.lang_switch}
         </button>
         
-        {/* Application Action Button */}
+        {/* 1. APPLY BUTTON: Always visible when showApply is true */}
         {showApply && (
           <Link href="/apply"
             className="text-xs font-bold px-4 py-2 rounded-lg border transition-all hover:bg-gold/10"
@@ -40,12 +40,14 @@ export default function Nav({ lang, onLangSwitch, t, showApply = true }) {
           </Link>
         )}
         
-        {/* Hidden Portal Backdoor */}
-        <Link href="/admin"
-          className="text-xs font-semibold px-3 py-2 rounded-lg transition-all"
-          style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}>
-          {t.admin_btn}
-        </Link>
+        {/* 2. ADMIN BUTTON: Connected directly to showApply so it hides on /apply */}
+        {showApply && (
+          <Link href="/admin"
+            className="text-xs font-semibold px-3 py-2 rounded-lg transition-all"
+            style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}>
+            {t.admin_btn}
+          </Link>
+        )}
       </div>
     </nav>
   )

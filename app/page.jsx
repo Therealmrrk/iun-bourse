@@ -21,7 +21,8 @@ export default function Landing() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <Nav lang={lang} onLangSwitch={() => setLang(l => l === 'fr' ? 'en' : 'fr')} t={t} />
+      {/* 🛠️ THE ONLY CHANGE: Added showApply={false} to hide the buttons here */}
+      <Nav lang={lang} onLangSwitch={() => setLang(l => l === 'fr' ? 'en' : 'fr')} t={t} showApply={false} />
 
       {/* Session resume banner */}
       {hasSession && (
