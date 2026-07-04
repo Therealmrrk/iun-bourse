@@ -34,12 +34,17 @@ export async function POST(req) {
 
     // Send acceptance email to applicant
     const { subject, html } = acceptanceEmail(app, lang)
-    await resend.emails.send({
+    const { data: emailData, error: emailErr } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to:   app.email,
       subject,
       html,
     })
+
+    if (emailErr) {
+      console.error('Resend error accepting application:', emailErr)
+      throw new Error(emailErr.message || 'Failed to send acceptance email')
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

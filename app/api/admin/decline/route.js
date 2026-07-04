@@ -30,12 +30,17 @@ export async function POST(req) {
     if (updateErr) throw updateErr
 
     const { subject, html } = rejectionEmail(app, lang)
-    await resend.emails.send({
+    const { data: emailData, error: emailErr } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to:   app.email,
       subject,
       html,
     })
+
+    if (emailErr) {
+      console.error('Resend error declining application:', emailErr)
+      throw new Error(emailErr.message || 'Failed to send rejection email')
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {
