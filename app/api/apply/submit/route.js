@@ -35,12 +35,16 @@ export async function POST(req) {
 
     // Notify admin by email
     const { subject, html } = adminNotificationEmail(updated)
-    await resend.emails.send({
+    const { data: emailData, error: emailErr } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to:   process.env.ADMIN_NOTIFICATION_EMAIL,
       subject,
       html,
     })
+
+    if (emailErr) {
+      console.error('Resend error sending admin notification email:', emailErr)
+    }
 
     return NextResponse.json({ application: updated })
   } catch (err) {
