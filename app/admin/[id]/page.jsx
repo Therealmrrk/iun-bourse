@@ -7,6 +7,8 @@ import { translations } from '@/lib/translations'
 import { statusStyle, statusLabel, formatDate } from '@/lib/utils'
 import { useLang } from '@/lib/useLang'
 
+const WA = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '[Numéro WhatsApp IUN]'
+
 export default function AdminDetail() {
   const { lang, switchLang } = useLang()
   const [app, setApp] = useState(null)
@@ -122,11 +124,11 @@ export default function AdminDetail() {
 
   const emailText = lang === 'fr'
     ? (modal === 'accept'
-      ? `Cher(e) ${app.full_name},\n\nVotre paiement a été confirmé et votre candidature a été acceptée.\n\n${app.in_togo ? 'Votre examen sera présentiel à Lomé. Les informations vous seront envoyées prochainement.' : 'Votre examen sera en ligne. Le lien vous sera envoyé prochainement.'}\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`
-      : `Cher(e) ${app.full_name},\n\nNous n'avons pas pu confirmer votre paiement.\n\nVeuillez soumettre une nouvelle preuve de paiement sur le portail ou contacter l'équipe de l'Institut Universitaire Nobel via WhatsApp.\n\nCordialement,\nL'équipe de l'Institut Universitaire Nobel`)
+      ? `Cher(e) ${app.full_name},\n\nNous vous informons que votre preuve de paiement a été vérifiée avec succès et que votre candidature pour la bourse de l'Institut Universitaire Nobel a été officiellement acceptée.\n\nQuelle est la prochaine étape ? Vous recevrez très prochainement un second e-mail vous indiquant la date, l'heure, le lieu (pour l'examen en présentiel) ou le lien de connexion (pour l'examen en ligne) ainsi que les modalités d'évaluation. Cela s'applique aussi bien aux candidats en présentiel qu'en ligne. De plus, vous serez ajouté(e) à un groupe WhatsApp dédié aux candidats. Pensez à vérifier régulièrement votre boîte de réception ainsi que vos courriers indésirables (spams).\n\nPour toute question urgente, n'hésitez pas à nous contacter par e-mail ou directement via notre assistance WhatsApp au ${WA}.\n\nCordialement,\nL’équipe d’administration\nInstitut Universitaire Nobel`
+      : `Cher(e) ${app.full_name},\n\nAprès vérification de votre dossier, nous vous informons que nous n'avons pas pu valider la preuve de paiement que vous avez soumise.\n\nComment corriger cela ? Votre dossier a été replacé en mode modification. Nous vous invitons à vous reconnecter sur le portail de candidature pour importer un reçu de paiement valide (capture d'écran lisible du transfert ou reçu bancaire officiel).\n\nSi vous rencontrez des difficultés ou estimez qu'il s'agit d'une erreur, contactez immédiatement notre équipe sur WhatsApp au ${WA} afin de régulariser votre situation.\n\nCordialement,\nL’équipe d’administration\nInstitut Universitaire Nobel`)
     : (modal === 'accept'
-      ? `Dear ${app.full_name},\n\nYour payment has been confirmed and your application has been accepted.\n\n${app.in_togo ? 'Your exam will be in person in Lomé. Details will be sent shortly.' : 'Your exam will be online. The link will be sent shortly.'}\n\nRegards,\nThe Institut Universitaire Nobel Team`
-      : `Dear ${app.full_name},\n\nWe could not confirm your payment.\n\nPlease submit a new payment receipt on the portal or contact the Institut Universitaire Nobel team via WhatsApp.\n\nRegards,\nThe Institut Universitaire Nobel Team`)
+      ? `Dear ${app.full_name},\n\nWe are pleased to inform you that your payment receipt has been successfully verified, and your application for the Institut Universitaire Nobel scholarship has been officially accepted.\n\nWhat happens next? You will shortly receive a second email with the date, time, venue (for the in-person exam) or login link (for the online exam), and the exam guidelines. This applies to both in-person and online candidates. Additionally, you will be added to a WhatsApp group dedicated to applicants. Please make sure to monitor your inbox and your spam folder regularly.\n\nFor any urgent inquiries, feel free to reply to this email or reach out to us directly via WhatsApp at ${WA}.\n\nBest regards,\nThe Admissions Team\nInstitut Universitaire Nobel`
+      : `Dear ${app.full_name},\n\nFollowing a review of your file, we regret to inform you that we could not validate the payment receipt you submitted.\n\nHow to fix this? Your application dashboard has been unlocked. Please log back into the application portal to upload a valid proof of payment (a clear screenshot of the mobile transfer confirmation or an official banking receipt).\n\nIf you encounter any technical issues or believe this is an error, please reach out to our team immediately via WhatsApp at ${WA} to resolve the issue.\n\nBest regards,\nThe Admissions Team\nInstitut Universitaire Nobel`)
 
   return (
     <div style={{minHeight:'100vh',background:'var(--gray-100)'}}>
